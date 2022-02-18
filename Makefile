@@ -6,15 +6,15 @@ create_db:
 
 #make PASS=example migrate
 migrate:
-	docker-compose run api migrate -path db/migrations -database "postgres://postgres:$(PASS)@db:5432/trackers?sslmode=disable" -verbose up
+	docker-compose run tracker migrate -path db/migrations -database "postgres://postgres:$(PASS)@db:5432/trackers?sslmode=disable" -verbose up
 
 #make TABLE=create_users_table migrate
 migration-create:
-	docker-compose run api migrate create -ext sql -dir db/migrations $(TABLE)
+	docker-compose run tracker migrate create -ext sql -dir db/migrations $(TABLE)
 
 #make PASS=example migrate-down
 migrate-down:
-	docker-compose run api migrate -path db/migrations -database "postgres://postgres:$(PASS)@db:5432/trackers?sslmode=disable" -verbose down
+	docker-compose run tracker migrate -path db/migrations -database "postgres://postgres:$(PASS)@db:5432/trackers?sslmode=disable" -verbose down
 
 # build:
 # 	docker-compose exec tracker go build /var/www/html/src/index.go
