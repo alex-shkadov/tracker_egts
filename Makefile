@@ -1,5 +1,5 @@
 setup_db:
-	docker-compose exec -u root db bash -c "echo \"host all all 192.168.16.0/24 trust\" >> /var/lib/postgresql/data/pg_hba.conf"
+	docker-compose exec -u root db bash -c "echo \"host all all 192.168.17.0/24 trust\" >> /var/lib/postgresql/data/pg_hba.conf"
 
 create_db:
 	docker-compose exec db createdb --username=postgres --owner=postgres trackers
