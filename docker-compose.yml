@@ -1,0 +1,82 @@
+version: '3.7'
+
+services:
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_ADMIN_USER}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD}
+      DB_USER: ${DB_USER}
+      DB_USER_PASS: ${DB_USER_PASS}
+    command: postgres -c logging_collector=on -c log_destination=stderr -c config_file=/etc/postgresql/postgresql.conf
+    volumes:
+      - ./shared/db/databases:/var/lib/postgresql/data
+      - ./shared/db/conf:/etc/postgresql
+      - ./shared/db/logs:/var/log/postgresql
+      - ./db/scripts:/docker-entrypoint-initdb.d
+    networks:
+      internal:
+        ipv4_address: ${DATABASE_IP_ADDR}
+
+  tracker:
+    build:
+      context: ./api
+      target: ${TRACKER_TARGET}
+    volumes:
+      - ./src:/var/www/html
+    environment:
+      db_host: db
+      db_name: ${DB_NAME}
+      db_user: ${DB_USER}
+      db_pass: ${DB_USER_PASS}
+      port: ${INTERNAL_PORT}
+      debug: ${DEBUG_MODE}
+      debug_sql: ${DEBUG_SQL}
+      read_timeout: ${READ_TIMEOUT}
+    ports:
+      - "${HOST_PORT}:${INTERNAL_PORT}"
+      - "2350:2350"
+    security_opt:
+      - "seccomp:unconfined"
+    depends_on:
+      - db
+    networks:
+      internal:
+        ipv4_address: ${TRACKER_IP_ADDR}
+
+  api:
+    build:
+      context: ./api
+      target: ${API_TARGET}
+    volumes:
+      - ./src:/var/www/html
+    command: go run api/http.go
+    environment:
+      db_host: db
+      db_name: ${DB_NAME}
+      db_user: ${DB_USER}
+      db_pass: ${DB_USER_PASS}
+      port: ${INTERNAL_HTTP_PORT}
+      debug: ${DEBUG_MODE}
+      debug_sql: ${DEBUG_SQL}
+    ports:
+      - "${HOST_HTTP_PORT}:${INTERNAL_HTTP_PORT}"
+      - "2351:2351"
+    security_opt:
+      - "seccomp:unconfined"
+    depends_on:
+      - db
+    networks:
+      internal:
+        ipv4_address: ${API_IP_ADDR}
+
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${SUBNET}
