@@ -35,7 +35,9 @@ func main() {
 				panic(err)
 			}
 
-			positions[uint16(id)] = posData
+			if posData != nil {
+				positions[uint16(id)] = posData
+			}
 
 		}
 
