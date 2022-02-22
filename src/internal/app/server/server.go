@@ -156,6 +156,7 @@ func HandleConnection(c net.Conn, timeout int) {
 									"SPD":       rdd.Speed,
 									"ALT":       rdd.Altitude,
 									"DIR":       rdd.Direction,
+									"DIRH":      rdd.DirectionHighestBit,
 									"ODM":       rdd.Odometer,
 									"LOHS":      rdd.LOHS,
 									"LAHS":      rdd.LAHS,

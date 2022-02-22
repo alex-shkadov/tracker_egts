@@ -42,7 +42,7 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 	}
 
 	sdrs, err := api.DB.Raw(""+
-		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, odm, satellites "+
+		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
 		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL", trackerId, dateFrom, dateTo).Rows()
@@ -65,10 +65,11 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 		var spd sql.NullInt16
 		var alts sql.NullInt32
 		var dir sql.NullByte
+		var dirh sql.NullByte
 		var odm sql.NullInt32
 		var sat sql.NullByte
 
-		err := sdrs.Scan(&id, &ntm, &lat, &lng, &mv, &bb, &spd, &alts, &dir, &odm, &sat)
+		err := sdrs.Scan(&id, &ntm, &lat, &lng, &mv, &bb, &spd, &alts, &dir, &dirh, &odm, &sat)
 		if err != nil {
 			return nil, err
 		}
@@ -83,6 +84,7 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 			Spd:        uint16(spd.Int16),
 			Alts:       alts.Int32,
 			Dir:        dir.Byte,
+			Dirh:       dirh.Byte,
 			Odm:        uint32(odm.Int32),
 			Satellites: uint(sat.Byte),
 		}

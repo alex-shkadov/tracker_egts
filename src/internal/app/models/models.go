@@ -40,6 +40,7 @@ type SrPosData struct {
 	Spd                 uint16            `json:"spd"`
 	Alts                int32             `json:"alts"`
 	Dir                 byte              `json:"dir"`
+	Dirh                byte              `json:"dirh"`
 	Odm                 uint32            `json:"odm"`
 	Satellites          uint              `json:"satellites"`
 	RecordNumber        int16             `json:"record_number"`

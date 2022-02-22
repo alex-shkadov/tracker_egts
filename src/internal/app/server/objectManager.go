@@ -104,6 +104,7 @@ func (om *ObjectManager) SaveSrPosData(sdr *models.ServiceDataRecord, data map[s
 		Spd:       data["SPD"].(uint16),
 		Alts:      altitude,
 		Dir:       data["DIR"].(byte),
+		Dirh:      data["DIRH"].(byte),
 		Odm:       data["ODM"].(uint32),
 		SDR:       *sdr,
 	}

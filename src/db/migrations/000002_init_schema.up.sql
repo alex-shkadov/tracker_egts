@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS sr_pos_data (
     spd int2 not null,
     alts int4 not null,
     dir int not null,
+    dirh int not null,
     odm int4 not null,
     satellites int not null,
     record_number int2 not null,
