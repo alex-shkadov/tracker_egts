@@ -45,7 +45,8 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
-		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL", trackerId, dateFrom, dateTo).Rows()
+		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL "+
+		"ORDER BY s.ntm", trackerId, dateFrom, dateTo).Rows()
 
 	defer sdrs.Close()
 	if err != nil {
@@ -53,6 +54,8 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 	}
 
 	result := []*models.SrPosData{}
+
+	var prev *models.SrPosData
 
 	for sdrs.Next() {
 
@@ -74,6 +77,12 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 			return nil, err
 		}
 
+		if prev != nil {
+			if prev.Latitude == lat.Float64 && prev.Longitude == lng.Float64 {
+				continue
+			}
+		}
+
 		srpd := &models.SrPosData{
 			ID:         uint64(id.Int64),
 			Ntm:        ntm.Time,
@@ -90,6 +99,8 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 		}
 
 		result = append(result, srpd)
+
+		prev = srpd
 	}
 
 	return result, nil
