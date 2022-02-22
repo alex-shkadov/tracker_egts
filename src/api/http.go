@@ -22,6 +22,32 @@ func main() {
 	db := db2.DBConnect()
 	api := &api2.Api{DB: db}
 
+	http.HandleFunc("/trackers_locations", func(w http.ResponseWriter, r *http.Request) {
+		json(w)
+
+		positions := map[uint16]*models.SrPosData{}
+		trackerIds := r.URL.Query()["id[]"]
+		for _, _id := range trackerIds {
+			id, _ := strconv.Atoi(_id)
+
+			posData, err := api.GetLastTrackerPosition(uint16(id))
+			if err != nil {
+				panic(err)
+			}
+
+			positions[uint16(id)] = posData
+
+		}
+
+		js, err2 := json2.Marshal(positions)
+		if err2 != nil {
+			panic(err2)
+		}
+
+		w.Write([]byte(js))
+
+	})
+
 	http.HandleFunc("/tracker_data", func(w http.ResponseWriter, r *http.Request) {
 		json(w)
 

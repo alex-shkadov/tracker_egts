@@ -28,6 +28,53 @@ func (api *Api) GetTrackers() ([]models.Tracker, error) {
 	return trackers, nil
 }
 
+func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, error) {
+	sdr := api.DB.Raw(""+
+		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
+		"FROM service_data_records as sdr "+
+		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
+		"WHERE sdr.tracker_id = ? AND s.deleted_at IS NULL "+
+		"ORDER BY s.ntm DESC "+
+		"LIMIT 1", trackerId).Row()
+
+	if sdr.Err() != nil && sdr.Err() == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	var id sql.NullInt64
+	var ntm sql.NullTime
+	var lat sql.NullFloat64
+	var lng sql.NullFloat64
+	var mv sql.NullBool
+	var bb sql.NullBool
+	var spd sql.NullInt16
+	var alts sql.NullInt32
+	var dir sql.NullByte
+	var dirh sql.NullByte
+	var odm sql.NullInt32
+	var sat sql.NullByte
+
+	err := sdr.Scan(&id, &ntm, &lat, &lng, &mv, &bb, &spd, &alts, &dir, &dirh, &odm, &sat)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.SrPosData{
+		ID:         uint64(id.Int64),
+		Ntm:        ntm.Time,
+		Latitude:   lat.Float64,
+		Longitude:  lng.Float64,
+		Mv:         mv.Bool,
+		Bb:         bb.Bool,
+		Spd:        uint16(spd.Int16),
+		Alts:       alts.Int32,
+		Dir:        dir.Byte,
+		Dirh:       dirh.Byte,
+		Odm:        uint32(odm.Int32),
+		Satellites: uint(sat.Byte),
+	}, nil
+}
+
 func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo string) ([]*models.SrPosData, error) {
 	tracker := models.Tracker{}
 
