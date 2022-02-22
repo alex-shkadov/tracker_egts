@@ -56,6 +56,9 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 
 	err := sdr.Scan(&id, &ntm, &lat, &lng, &mv, &bb, &spd, &alts, &dir, &dirh, &odm, &sat)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
