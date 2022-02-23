@@ -191,6 +191,23 @@ func HandleConnection(c net.Conn, timeout int) {
 						}
 					}
 				}
+
+				resp := parser.CreatePtResponse(pack, 0)
+
+				respBytes, err := resp.Encode()
+				if err != nil {
+					log.Println(prefix, "Ошибка формирования ответа:", err)
+					return
+				}
+
+				//log.Println(srResultCodeRespBytes)
+				n2, err := c.Write(respBytes)
+				if err != nil {
+					log.Println(prefix, "Ошибка записи пакета PtResponse:", err)
+					return
+				}
+
+				logger.LogETGSConnectionData(respBytes[:n2], false)
 			}
 		}
 	}

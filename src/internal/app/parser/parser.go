@@ -12,6 +12,25 @@ const (
 	Tele ServiceType = 2
 )
 
+func CreatePtResponse(pack *egts.Package, result uint8) *egts.Package {
+	return &egts.Package{
+		ProtocolVersion:  1,
+		SecurityKeyID:    0,
+		Prefix:           "00",
+		EncryptionAlg:    "00",
+		Compression:      "00",
+		Priority:         "00",
+		HeaderEncoding:   0,
+		PacketIdentifier: pack.PacketIdentifier + 1,
+		TimeToLive:       10,
+		PacketType:       egts.PtResponsePacket,
+		ServicesFrameData: &egts.PtResponse{
+			ResponsePacketID: pack.PacketIdentifier,
+			ProcessingResult: result,
+		},
+	}
+}
+
 func CreateSrResultCodeResponse(pack *egts.Package) *egts.Package {
 
 	return &egts.Package{
