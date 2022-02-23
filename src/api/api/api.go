@@ -3,6 +3,7 @@ package api
 import (
 	"database/sql"
 	"gorm.io/gorm"
+	"time"
 	"tracker/internal/app/models"
 	"tracker/internal/app/server"
 )
@@ -10,6 +11,16 @@ import (
 type Api struct {
 	OM *server.ObjectManager
 	DB *gorm.DB
+}
+
+type GpsData struct {
+	Ntm        time.Time `json:"ntm"`
+	Latitude   float64   `json:"latitude"`
+	Longitude  float64   `json:"longitude"`
+	Spd        uint16    `json:"spd"`
+	Alts       int32     `json:"alts"`
+	Dir        byte      `json:"dir"`
+	Satellites uint      `json:"satellites"`
 }
 
 func (api *Api) GetTrackers() ([]models.Tracker, error) {
@@ -78,7 +89,7 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 	}, nil
 }
 
-func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo string) ([]*models.SrPosData, error) {
+func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo string) ([]*GpsData, error) {
 	tracker := models.Tracker{}
 
 	tx := api.DB.Where("id = ?", trackerId).First(&tracker)
@@ -103,9 +114,9 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 		panic(err)
 	}
 
-	result := []*models.SrPosData{}
+	result := []*GpsData{}
 
-	var prev *models.SrPosData
+	var prev *GpsData
 
 	for sdrs.Next() {
 
@@ -128,23 +139,18 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 		}
 
 		if prev != nil {
-			if prev.Latitude == lat.Float64 && prev.Longitude == lng.Float64 {
+			if prev.Latitude == lat.Float64 && prev.Longitude == lng.Float64 && prev.Alts == alts.Int32 {
 				continue
 			}
 		}
 
-		srpd := &models.SrPosData{
-			ID:         uint64(id.Int64),
+		srpd := &GpsData{
 			Ntm:        ntm.Time,
 			Latitude:   lat.Float64,
 			Longitude:  lng.Float64,
-			Mv:         mv.Bool,
-			Bb:         bb.Bool,
 			Spd:        uint16(spd.Int16),
 			Alts:       alts.Int32,
 			Dir:        dir.Byte,
-			Dirh:       dirh.Byte,
-			Odm:        uint32(odm.Int32),
 			Satellites: uint(sat.Byte),
 		}
 
