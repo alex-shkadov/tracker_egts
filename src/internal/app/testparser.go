@@ -48,7 +48,12 @@ func TestParser(files []string) {
 					bytes = append(bytes, byte(integer))
 				}
 
-				pkt, st := parser.ParseMessage(bytes, "")
+				pkt, st, err := parser.ParseMessage(bytes, "")
+
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
 
 				if len(bytes) == 45 {
 					imei := parser.GetIMEI(pkt)

@@ -52,7 +52,12 @@ func HandleConnection(c net.Conn, timeout int) {
 
 		logger.LogETGSConnectionData(bytes[:n], true)
 
-		pack, servType := parser.ParseMessage(bytes[:n], prefix)
+		pack, servType, err := parser.ParseMessage(bytes[:n], prefix)
+
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 
 		if servType == parser.Auth {
 

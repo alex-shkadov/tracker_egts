@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/kuznetsovin/egts-protocol/libs/egts"
 	"log"
 )
@@ -74,7 +73,7 @@ func CreateAuthResponse(pack *egts.Package) *egts.Package {
 	}
 }
 
-func ParseMessage(bytes []byte, addr string) (*egts.Package, ServiceType) {
+func ParseMessage(bytes []byte, addr string) (*egts.Package, ServiceType, error) {
 
 	//fmt.Println("Str: ", bytes)
 
@@ -84,7 +83,7 @@ func ParseMessage(bytes []byte, addr string) (*egts.Package, ServiceType) {
 	_, err := result.Decode(bytes)
 
 	if err != nil {
-		fmt.Println(addr, err)
+		return nil, 0, err
 	}
 
 	if result.PacketType == 1 {
@@ -105,7 +104,7 @@ func ParseMessage(bytes []byte, addr string) (*egts.Package, ServiceType) {
 		//fmt.Println(addr, "DDD")
 	}
 
-	return &result, servType
+	return &result, servType, nil
 }
 
 func GetIMEI(p *egts.Package) string {
