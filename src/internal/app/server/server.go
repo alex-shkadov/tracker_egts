@@ -47,6 +47,7 @@ func HandleConnection(c net.Conn, timeout int) {
 			}
 
 			log.Println(prefix, "Ошибка чтения данных TCP-соединения. Завершение работы  соединения от устройства ", imei, err)
+			c.Close()
 			return
 		}
 
