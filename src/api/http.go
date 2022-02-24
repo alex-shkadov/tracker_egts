@@ -50,6 +50,41 @@ func main() {
 
 	})
 
+	http.HandleFunc("/trackers_data", func(w http.ResponseWriter, r *http.Request) {
+		trackerIds := r.URL.Query()["id[]"]
+		dateFrom := r.URL.Query().Get("dateFrom")
+		dateTo := r.URL.Query().Get("dateTo")
+
+		if len(trackerIds) == 0 || dateFrom == "" || dateTo == "" {
+			w.WriteHeader(400)
+			w.Write([]byte("{}"))
+			return
+		}
+
+		result := map[int][]*api2.GpsData{}
+
+		for _, _id := range trackerIds {
+			id, _ := strconv.Atoi(_id)
+
+			posData, err := api.GetTrackerGPSData(uint16(id), dateFrom, dateTo)
+			if err != nil {
+				w.WriteHeader(500)
+				w.Write([]byte("{}"))
+				return
+			}
+
+			result[id] = posData
+
+		}
+
+		js, err2 := json2.Marshal(result)
+		if err2 != nil {
+			panic(err2)
+		}
+
+		w.Write([]byte(js))
+	})
+
 	http.HandleFunc("/tracker_data", func(w http.ResponseWriter, r *http.Request) {
 		json(w)
 
