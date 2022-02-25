@@ -84,7 +84,7 @@ func TestParser(files []string) {
 
 					for _, sfd := range *dataSet {
 						track, _ := om.GetTracker("111")
-						sdr, err := om.SaveSDR(sfd.RecordNumber, sfd.ObjectIdentifier, track)
+						sdr, err := om.SaveSDR(pkt.PacketIdentifier, sfd.RecordNumber, sfd.ObjectIdentifier, track)
 						if err != nil {
 							log.Fatalln(err)
 						}
