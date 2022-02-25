@@ -21,7 +21,7 @@ func CreatePtResponse(pack *egts.Package, result uint8) *egts.Package {
 		Compression:      "00",
 		Priority:         "00",
 		HeaderEncoding:   0,
-		PacketIdentifier: pack.PacketIdentifier + 1,
+		PacketIdentifier: pack.PacketIdentifier, // + 1,
 		TimeToLive:       10,
 		PacketType:       egts.PtResponsePacket,
 		ServicesFrameData: &egts.PtResponse{
@@ -41,7 +41,7 @@ func CreateSrResultCodeResponse(pack *egts.Package) *egts.Package {
 		Compression:      "00",
 		Priority:         "00",
 		HeaderEncoding:   0,
-		PacketIdentifier: 2,
+		PacketIdentifier: pack.PacketIdentifier,
 		TimeToLive:       10,
 		PacketType:       egts.PtAppdataPacket,
 		ServicesFrameData: &egts.ServiceDataSet{
