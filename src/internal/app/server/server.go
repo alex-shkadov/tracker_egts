@@ -128,7 +128,7 @@ func HandleConnection(c net.Conn, timeout int) {
 
 				dataSet := pack.ServicesFrameData.(*egts.ServiceDataSet)
 				for _, sfd := range *dataSet {
-					sdr, err := om.SaveSDR(sfd.RecordNumber, sfd.ObjectIdentifier, track)
+					sdr, err := om.SaveSDR(pack.PacketIdentifier, sfd.RecordNumber, sfd.ObjectIdentifier, track)
 					if err != nil {
 						log.Fatalln(err)
 					}

@@ -56,8 +56,9 @@ func (om *ObjectManager) SavePacket() *models.ServiceDataRecord {
 	return nil
 }
 
-func (om *ObjectManager) SaveSDR(rNum uint16, oid uint32, tracker *models.Tracker) (*models.ServiceDataRecord, error) {
+func (om *ObjectManager) SaveSDR(pId uint16, rNum uint16, oid uint32, tracker *models.Tracker) (*models.ServiceDataRecord, error) {
 	sdr := &models.ServiceDataRecord{
+		PacketId:         pId,
 		RecordNumber:     rNum,
 		ObjectIdentifier: oid,
 		Tracker:          *tracker,

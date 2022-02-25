@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS trackers (
 
 CREATE TABLE IF NOT EXISTS service_data_records (
     id serial8 not null primary key,
+    packet_id int2 NOT NULL,
     tracker_id int2 NOT NULL REFERENCES trackers(id) ON DELETE RESTRICT ON UPDATE RESTRICT,
     record_number int4 not null,
     object_identifier int4 not null,

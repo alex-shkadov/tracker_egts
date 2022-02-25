@@ -19,6 +19,7 @@ type Tracker struct {
 
 type ServiceDataRecord struct {
 	ID               uint64         `json:"id" gorm:"primarykey"`
+	PacketId         uint16         `json:"packet_id"`
 	TrackerId        uint16         `json:"tracker_id"`
 	Tracker          Tracker        `gorm:"foreignKey:TrackerId"`
 	RecordNumber     uint16         `json:"record_number"`
