@@ -143,22 +143,12 @@ func HandleConnection(c net.Conn, timeout int) {
 							if rd.SubrecordType == 16 {
 								rdd := rd.SubrecordData.(*egts.SrPosData)
 
-								bb := false
-								mv := false
-
-								if rdd.MV == "1" {
-									mv = true
-								}
-								if rdd.BB == "1" {
-									bb = true
-								}
-
 								data = map[string]interface{}{
 									"Latitude":  rdd.Latitude,
 									"Longitude": rdd.Longitude,
 									"NTM":       rdd.NavigationTime,
-									"MV":        mv,
-									"BB":        bb,
+									"MV":        rdd.MV,
+									"BB":        rdd.BB,
 									"SPD":       rdd.Speed,
 									"VLD":       rdd.VLD,
 									"ALT":       rdd.Altitude,
