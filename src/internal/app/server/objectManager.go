@@ -98,11 +98,15 @@ func (om *ObjectManager) SaveSrPosData(sdr *models.ServiceDataRecord, data map[s
 
 	mv := 0
 	bb := 0
+	vld := 0
 	if data["MV"].(string) == "1" {
 		mv = 1
 	}
 	if data["BB"].(string) == "1" {
 		bb = 1
+	}
+	if data["VLD"].(string) == "1" {
+		vld = 1
 	}
 
 	srd := &models.SrPosData{
@@ -114,7 +118,7 @@ func (om *ObjectManager) SaveSrPosData(sdr *models.ServiceDataRecord, data map[s
 		Spd:       data["SPD"].(uint16),
 		Alts:      altitude,
 		Dir:       data["DIR"].(byte),
-		Vld:       data["VLD"].(byte),
+		Vld:       byte(vld),
 		Dirh:      data["DIRH"].(byte),
 		Odm:       data["ODM"].(uint32),
 		SDR:       *sdr,
