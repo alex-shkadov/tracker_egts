@@ -160,6 +160,7 @@ func HandleConnection(c net.Conn, timeout int) {
 									"MV":        mv,
 									"BB":        bb,
 									"SPD":       rdd.Speed,
+									"VLD":       rdd.VLD,
 									"ALT":       rdd.Altitude,
 									"DIR":       rdd.Direction,
 									"DIRH":      rdd.DirectionHighestBit,

@@ -36,8 +36,9 @@ type SrPosData struct {
 	Ntm                 time.Time         `json:"ntm"`
 	Latitude            float64           `json:"latitude"`
 	Longitude           float64           `json:"longitude"`
-	Mv                  bool              `json:"mv"`
-	Bb                  bool              `json:"bb"`
+	Mv                  byte              `json:"mv"`
+	Bb                  byte              `json:"bb"`
+	Vld                 byte              `json:"vld"`
 	Spd                 uint16            `json:"spd"`
 	Alts                int32             `json:"alts"`
 	Dir                 byte              `json:"dir"`
