@@ -81,6 +81,7 @@ func HandleConnection(c net.Conn, timeout int) {
 				if err != nil {
 
 					log.Println(prefix, "Ошибка создания трекера. Завершение работы  соединения от устройства", track.Imei, err)
+					c.Close()
 					return
 				}
 			}
@@ -90,12 +91,14 @@ func HandleConnection(c net.Conn, timeout int) {
 			authResponseBytes, err := authResponse.Encode()
 			if err != nil {
 				log.Println(prefix, "Ошибка формирования ответа:", err)
+				c.Close()
 				return
 			}
 
 			n, err = c.Write(authResponseBytes)
 			if err != nil {
 				log.Println(prefix, "Ошибка записи пакета ответа:", err)
+				c.Close()
 				return
 			}
 
@@ -108,6 +111,7 @@ func HandleConnection(c net.Conn, timeout int) {
 			srResultCodeRespBytes, err := srResultCodeResp.Encode()
 			if err != nil {
 				log.Println(prefix, "Ошибка формирования ответа:", err)
+				c.Close()
 				return
 			}
 
@@ -115,6 +119,7 @@ func HandleConnection(c net.Conn, timeout int) {
 			n2, err := c.Write(srResultCodeRespBytes)
 			if err != nil {
 				log.Println(prefix, "Ошибка записи пакета SrResCode:", err)
+				c.Close()
 				return
 			}
 
@@ -188,6 +193,7 @@ func HandleConnection(c net.Conn, timeout int) {
 				respBytes, err := resp.Encode()
 				if err != nil {
 					log.Println(prefix, "Ошибка формирования ответа:", err)
+					c.Close()
 					return
 				}
 
@@ -195,6 +201,7 @@ func HandleConnection(c net.Conn, timeout int) {
 				n2, err := c.Write(respBytes)
 				if err != nil {
 					log.Println(prefix, "Ошибка записи пакета PtResponse:", err)
+					c.Close()
 					return
 				}
 
