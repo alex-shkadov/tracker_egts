@@ -56,8 +56,8 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 	var ntm sql.NullTime
 	var lat sql.NullFloat64
 	var lng sql.NullFloat64
-	var mv sql.NullBool
-	var bb sql.NullBool
+	var mv sql.NullByte
+	var bb sql.NullByte
 	var spd sql.NullInt16
 	var alts sql.NullInt32
 	var dir sql.NullByte
@@ -78,8 +78,8 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 		Ntm:        ntm.Time,
 		Latitude:   lat.Float64,
 		Longitude:  lng.Float64,
-		Mv:         mv.Bool,
-		Bb:         bb.Bool,
+		Mv:         mv.Byte,
+		Bb:         bb.Byte,
 		Spd:        uint16(spd.Int16),
 		Alts:       alts.Int32,
 		Dir:        dir.Byte,

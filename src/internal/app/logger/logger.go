@@ -9,16 +9,21 @@ import (
 
 const DIRECTORY = "logs"
 
-func logFileName() string {
-	return time.Now().Format("2006-01-02_15") + ":00.log"
+func logFileName(imei string) string {
+	if imei == "" {
+		return time.Now().Format("2006-01-02_15") + ":00.log"
+	}
+
+	return time.Now().Format("2006-01-02_15") + ":00." + imei + ".log"
 }
 
-func logFilePath() string {
-	return DIRECTORY + "/" + logFileName()
+func logFilePath(imei string) string {
+	return DIRECTORY + "/" + logFileName(imei)
 }
 
 func GetFiles() []string {
 	regex := `^\d{4}\-\d{2}\-\d{2}_\d{2}\:00\.log$`
+	//regex := `^\d{4}\-\d{2}\-26_12\:00\.log$`
 	files, err := os.ReadDir(DIRECTORY)
 	if err != nil {
 		log.Fatalln(err)
@@ -33,7 +38,7 @@ func GetFiles() []string {
 			log.Fatalln(err)
 		}
 
-		if matched || true {
+		if matched {
 			result = append(result, DIRECTORY+"/"+file.Name())
 		}
 	}
@@ -41,8 +46,8 @@ func GetFiles() []string {
 	return result
 }
 
-func LogETGSConnectionData(bytes []byte, in bool) {
-	logFile := logFilePath()
+func LogETGSConnectionData(bytes []byte, in bool, imei string) {
+	logFile := logFilePath(imei)
 
 	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {

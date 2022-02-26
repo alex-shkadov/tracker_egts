@@ -51,7 +51,7 @@ func HandleConnection(c net.Conn, timeout int) {
 			return
 		}
 
-		logger.LogETGSConnectionData(bytes[:n], true)
+		logger.LogETGSConnectionData(bytes[:n], true, "")
 
 		pack, servType, err := parser.ParseMessage(bytes[:n], prefix)
 
@@ -67,6 +67,8 @@ func HandleConnection(c net.Conn, timeout int) {
 			if imei == "" {
 				log.Fatalln("Не опознан IMEI")
 			}
+
+			logger.LogETGSConnectionData(bytes[:n], true, imei)
 
 			imei = strings.Trim(imei, "\x00")
 			if imei == "" {
@@ -102,7 +104,8 @@ func HandleConnection(c net.Conn, timeout int) {
 				return
 			}
 
-			logger.LogETGSConnectionData(authResponseBytes[:n], false)
+			logger.LogETGSConnectionData(authResponseBytes[:n], false, "")
+			logger.LogETGSConnectionData(authResponseBytes[:n], false, imei)
 
 			//log.Println(prefix, "Send Sr Result Code")
 
@@ -123,12 +126,16 @@ func HandleConnection(c net.Conn, timeout int) {
 				return
 			}
 
-			logger.LogETGSConnectionData(srResultCodeRespBytes[:n2], false)
+			logger.LogETGSConnectionData(srResultCodeRespBytes[:n2], false, "")
+			logger.LogETGSConnectionData(srResultCodeRespBytes[:n2], false, imei)
 
 		} else {
 			if track == nil {
 				log.Fatalln("Не определен трекер")
 			}
+
+			logger.LogETGSConnectionData(bytes[:n], true, track.Imei)
+
 			if servType == parser.Tele {
 
 				dataSet := pack.ServicesFrameData.(*egts.ServiceDataSet)
@@ -205,7 +212,8 @@ func HandleConnection(c net.Conn, timeout int) {
 					return
 				}
 
-				logger.LogETGSConnectionData(respBytes[:n2], false)
+				logger.LogETGSConnectionData(respBytes[:n2], false, "")
+				logger.LogETGSConnectionData(respBytes[:n2], false, track.Imei)
 			}
 		}
 	}
