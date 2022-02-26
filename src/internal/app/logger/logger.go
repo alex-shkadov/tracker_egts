@@ -47,7 +47,7 @@ func GetFiles() []string {
 }
 
 func LogETGSConnectionData(bytes []byte, in bool, imei string) {
-	logFile := logFilePath(imei)
+	logFile := logFilePath("")
 
 	file, err := os.OpenFile(logFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
