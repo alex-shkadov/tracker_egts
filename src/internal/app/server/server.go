@@ -68,7 +68,7 @@ func HandleConnection(c net.Conn, timeout int) {
 				log.Fatalln("Не опознан IMEI")
 			}
 
-			//logger.LogETGSConnectionData(bytes[:n], true, imei)
+			logger.LogETGSConnectionData(bytes[:n], true, imei)
 
 			imei = strings.Trim(imei, "\x00")
 			if imei == "" {
@@ -104,8 +104,8 @@ func HandleConnection(c net.Conn, timeout int) {
 				return
 			}
 
-			logger.LogETGSConnectionData(authResponseBytes[:n], false, "")
-			//logger.LogETGSConnectionData(authResponseBytes[:n], false, imei)
+			//logger.LogETGSConnectionData(authResponseBytes[:n], false, "")
+			logger.LogETGSConnectionData(authResponseBytes[:n], false, imei)
 
 			//log.Println(prefix, "Send Sr Result Code")
 
@@ -126,15 +126,15 @@ func HandleConnection(c net.Conn, timeout int) {
 				return
 			}
 
-			logger.LogETGSConnectionData(srResultCodeRespBytes[:n2], false, "")
-			//logger.LogETGSConnectionData(srResultCodeRespBytes[:n2], false, imei)
+			//logger.LogETGSConnectionData(srResultCodeRespBytes[:n2], false, "")
+			logger.LogETGSConnectionData(srResultCodeRespBytes[:n2], false, imei)
 
 		} else {
 			if track == nil {
 				log.Fatalln("Не определен трекер")
 			}
 
-			//logger.LogETGSConnectionData(bytes[:n], true, track.Imei)
+			logger.LogETGSConnectionData(bytes[:n], true, track.Imei)
 
 			if servType == parser.Tele {
 
@@ -212,8 +212,8 @@ func HandleConnection(c net.Conn, timeout int) {
 					return
 				}
 
-				logger.LogETGSConnectionData(respBytes[:n2], false, "")
-				//logger.LogETGSConnectionData(respBytes[:n2], false, track.Imei)
+				//logger.LogETGSConnectionData(respBytes[:n2], false, "")
+				logger.LogETGSConnectionData(respBytes[:n2], false, track.Imei)
 			}
 		}
 	}

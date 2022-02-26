@@ -55,9 +55,9 @@ func LogETGSConnectionData(bytes []byte, in bool, imei string) {
 	}
 	defer file.Close()
 
-	prefix := ">> "
+	prefix := imei + ">> "
 	if !in {
-		prefix = "<< "
+		prefix = imei + "<< "
 	}
 
 	log.Println("LOG TO FILE", logFile, "DATA:", bytes)
