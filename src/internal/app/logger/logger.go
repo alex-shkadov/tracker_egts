@@ -14,7 +14,7 @@ func logFileName(imei string) string {
 		return time.Now().Format("2006-01-02_15") + ":00.log"
 	}
 
-	return imei + "_" + time.Now().Format("2006-01-02_15") + ":00.log"
+	return time.Now().Format("2006-01-02_15") + ":00." + imei + ".log"
 }
 
 func logFilePath(imei string) string {
