@@ -118,6 +118,8 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 
 	var prev *GpsData
 
+	var ntmCounter time.Time
+
 	for sdrs.Next() {
 
 		var id sql.NullInt64
@@ -138,11 +140,25 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 			return nil, err
 		}
 
+		if ntmCounter.IsZero() {
+			ntmCounter = ntm.Time
+		}
+
 		if prev != nil {
+			if prev.Spd == 0 && spd.Int16 == 0 {
+				continue
+			}
+
 			if prev.Latitude == lat.Float64 && prev.Longitude == lng.Float64 && prev.Alts == alts.Int32 {
 				continue
 			}
 		}
+
+		if ntm.Time.Unix() < ntmCounter.Unix()+10 {
+			continue
+		}
+
+		ntmCounter = ntm.Time
 
 		srpd := &GpsData{
 			Ntm:        ntm.Time,
