@@ -44,7 +44,7 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
-		"WHERE sdr.tracker_id = ? AND s.deleted_at IS NULL "+
+		"WHERE sdr.tracker_id = ? AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' "+
 		"ORDER BY s.ntm DESC "+
 		"LIMIT 1", trackerId).Row()
 
@@ -106,7 +106,7 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
-		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL "+
+		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' "+
 		"ORDER BY s.ntm", trackerId, dateFrom, dateTo).Rows()
 
 	defer sdrs.Close()
