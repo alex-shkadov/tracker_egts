@@ -44,7 +44,7 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
-		"WHERE sdr.tracker_id = ? AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' "+
+		"WHERE sdr.tracker_id = ? AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' AND s.vld = 1 "+
 		"ORDER BY s.ntm DESC "+
 		"LIMIT 1", trackerId).Row()
 
@@ -89,7 +89,7 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 	}, nil
 }
 
-func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo string) ([]*GpsData, error) {
+func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo string, all bool) ([]*GpsData, error) {
 	tracker := models.Tracker{}
 
 	tx := api.DB.Where("id = ?", trackerId).First(&tracker)
@@ -106,7 +106,7 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
-		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' "+
+		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' AND s.vld = 1 "+
 		"ORDER BY s.ntm", trackerId, dateFrom, dateTo).Rows()
 
 	defer sdrs.Close()
@@ -140,25 +140,27 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 			return nil, err
 		}
 
-		if ntmCounter.IsZero() {
+		if !all {
+			if ntmCounter.IsZero() {
+				ntmCounter = ntm.Time
+			}
+
+			if prev != nil {
+				if prev.Spd == 0 && spd.Int16 == 0 {
+					continue
+				}
+
+				if prev.Latitude == lat.Float64 && prev.Longitude == lng.Float64 && prev.Alts == alts.Int32 {
+					continue
+				}
+			}
+
+			if ntm.Time.Unix() < ntmCounter.Unix()+10 {
+				continue
+			}
+
 			ntmCounter = ntm.Time
 		}
-
-		if prev != nil {
-			if prev.Spd == 0 && spd.Int16 == 0 {
-				continue
-			}
-
-			if prev.Latitude == lat.Float64 && prev.Longitude == lng.Float64 && prev.Alts == alts.Int32 {
-				continue
-			}
-		}
-
-		if ntm.Time.Unix() < ntmCounter.Unix()+10 {
-			continue
-		}
-
-		ntmCounter = ntm.Time
 
 		srpd := &GpsData{
 			Ntm:        ntm.Time,

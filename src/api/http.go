@@ -54,6 +54,7 @@ func main() {
 		trackerIds := r.URL.Query()["id[]"]
 		dateFrom := r.URL.Query().Get("dateFrom")
 		dateTo := r.URL.Query().Get("dateTo")
+		all := r.URL.Query().Get("all")
 
 		if len(trackerIds) == 0 || dateFrom == "" || dateTo == "" {
 			w.WriteHeader(400)
@@ -66,7 +67,7 @@ func main() {
 		for _, _id := range trackerIds {
 			id, _ := strconv.Atoi(_id)
 
-			posData, err := api.GetTrackerGPSData(uint16(id), dateFrom, dateTo)
+			posData, err := api.GetTrackerGPSData(uint16(id), dateFrom, dateTo, all == "1")
 			if err != nil {
 				w.WriteHeader(500)
 				w.Write([]byte("{}"))
@@ -91,6 +92,7 @@ func main() {
 		trackerId := r.URL.Query().Get("id")
 		dateFrom := r.URL.Query().Get("dateFrom")
 		dateTo := r.URL.Query().Get("dateTo")
+		all := r.URL.Query().Get("all")
 
 		tId, _ := strconv.Atoi(trackerId)
 
@@ -100,7 +102,7 @@ func main() {
 			return
 		}
 
-		posData, err := api.GetTrackerGPSData(uint16(tId), dateFrom, dateTo)
+		posData, err := api.GetTrackerGPSData(uint16(tId), dateFrom, dateTo, all != "")
 		if err != nil {
 			w.WriteHeader(500)
 			w.Write([]byte("{}"))
