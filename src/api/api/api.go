@@ -107,7 +107,7 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
 		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' AND s.vld = 1 "+
-		"ORDER BY s.ntm", trackerId, dateFrom, dateTo).Rows()
+		"ORDER BY s.id", trackerId, dateFrom, dateTo).Rows()
 
 	defer sdrs.Close()
 	if err != nil {
@@ -151,6 +151,10 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 				}
 
 				if prev.Latitude == lat.Float64 && prev.Longitude == lng.Float64 && prev.Alts == alts.Int32 {
+					continue
+				}
+
+				if prev.Ntm.String() > ntm.Time.String() {
 					continue
 				}
 			}
