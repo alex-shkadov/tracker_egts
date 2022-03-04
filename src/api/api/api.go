@@ -153,10 +153,6 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 				if prev.Latitude == lat.Float64 && prev.Longitude == lng.Float64 && prev.Alts == alts.Int32 {
 					continue
 				}
-
-				if prev.Ntm.String() > ntm.Time.String() {
-					continue
-				}
 			}
 
 			if ntm.Time.Unix() < ntmCounter.Unix()+10 {
