@@ -66,6 +66,112 @@ func (api *Api) GetTrackers() ([]models.Tracker, error) {
 	return trackers, nil
 }
 
+func (api *Api) GetLastTrackersPositions(trackerIds []string) (map[int]*models.SrPosData, error) {
+
+	trackStr := ""
+	if len(trackerIds) > 0 {
+
+		trackStr = " AND sdr.tracker_id IN (" + strings.Join(trackerIds, ", ") + ") "
+	}
+	sqlText := "SELECT sdr.tracker_id, max(s.ntm) as ntm" +
+		"FROM service_data_records as sdr " +
+		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id " +
+		"WHERE s.ntm < '2100-01-01' " + trackStr +
+		"GROUP BY sdr.tracker_id"
+
+	rows, err := api.DB.Raw(sqlText).Rows()
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	result := map[int]*models.SrPosData{}
+
+	defer rows.Close()
+	for rows.Next() {
+		var TrackerId int
+		var Ntm string
+		rows.Scan(&TrackerId, &Ntm)
+
+		sdr := api.DB.Raw(""+
+			"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites, display_name "+
+			"FROM service_data_records as sdr "+
+			"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
+			"WHERE sdr.tracker_id = ? AND s.ntm = ?"+
+			"LIMIT 1", TrackerId, Ntm).Row()
+
+		if sdr.Err() != nil && sdr.Err() == sql.ErrNoRows {
+			return nil, nil
+		}
+
+		var id sql.NullInt64
+		var ntm sql.NullTime
+		var lat sql.NullFloat64
+		var lng sql.NullFloat64
+		var mv sql.NullByte
+		var bb sql.NullByte
+		var spd sql.NullInt16
+		var alts sql.NullInt32
+		var dir sql.NullByte
+		var dirh sql.NullByte
+		var odm sql.NullInt32
+		var sat sql.NullByte
+		var display_name sql.NullString
+
+		err := sdr.Scan(&id, &ntm, &lat, &lng, &mv, &bb, &spd, &alts, &dir, &dirh, &odm, &sat, &display_name)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		//if strings.Trim(display_name.String, "") == "" && lat.Float64 > 0 && lng.Float64 > 0 {
+		//	jsn, err := reverseGeocode(lat.Float64, lng.Float64)
+		//
+		//	if err != nil {
+		//		log.Println("Geocode error:", err)
+		//	} else {
+		//		DN := &struct {
+		//			DisplayName string `json:"display_name"`
+		//		}{}
+		//		err = json.Unmarshal([]byte(jsn), DN)
+		//		if err != nil {
+		//			log.Println("Geocode unmarchal error:", err)
+		//		} else {
+		//			sqlText := "UPDATE sr_pos_data SET display_name = '" + DN.DisplayName + "' WHERE id = " + fmt.Sprint(id.Int64)
+		//			tx := api.DB.Exec(sqlText)
+		//			if tx.Error != nil {
+		//				log.Println(tx.Error)
+		//			}
+		//
+		//			tx.Commit()
+		//		}
+		//
+		//	}
+		//
+		//}
+
+		result[TrackerId] = &models.SrPosData{
+			ID:          uint64(id.Int64),
+			Ntm:         ntm.Time,
+			Latitude:    lat.Float64,
+			Longitude:   lng.Float64,
+			Mv:          mv.Byte,
+			Bb:          bb.Byte,
+			Spd:         uint16(spd.Int16),
+			Alts:        alts.Int32,
+			Dir:         dir.Byte,
+			Dirh:        dirh.Byte,
+			Odm:         uint32(odm.Int32),
+			Satellites:  uint(sat.Byte),
+			DisplayName: display_name.String,
+		}
+	}
+
+	return result, nil
+}
+
 func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, error) {
 	sdr := api.DB.Raw(""+
 		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites, display_name "+
@@ -115,7 +221,12 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 				log.Println("Geocode unmarchal error:", err)
 			} else {
 				sqlText := "UPDATE sr_pos_data SET display_name = '" + DN.DisplayName + "' WHERE id = " + fmt.Sprint(id.Int64)
-				api.DB.Raw(sqlText).Commit()
+				tx := api.DB.Exec(sqlText)
+				if tx.Error != nil {
+					log.Println(tx.Error)
+				}
+
+				tx.Commit()
 			}
 
 		}

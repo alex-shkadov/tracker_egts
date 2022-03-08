@@ -25,20 +25,11 @@ func main() {
 	http.HandleFunc("/trackers_locations", func(w http.ResponseWriter, r *http.Request) {
 		json(w)
 
-		positions := map[uint16]*models.SrPosData{}
 		trackerIds := r.URL.Query()["id[]"]
-		for _, _id := range trackerIds {
-			id, _ := strconv.Atoi(_id)
+		positions, err := api.GetLastTrackersPositions(trackerIds)
 
-			posData, err := api.GetLastTrackerPosition(uint16(id))
-			if err != nil {
-				panic(err)
-			}
-
-			if posData != nil {
-				positions[uint16(id)] = posData
-			}
-
+		if err != nil {
+			panic(err)
 		}
 
 		js, err2 := json2.Marshal(positions)
