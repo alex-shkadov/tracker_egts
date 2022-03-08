@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS sr_pos_data (
     odm int4 not null,
     satellites int not null,
     record_number int2 not null,
+    display_name varchar(512),
     created_at timestamp with time zone not null default now()::timestamp,
     updated_at timestamp with time zone default null,
     deleted_at timestamp with time zone default null

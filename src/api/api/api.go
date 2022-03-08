@@ -1,12 +1,39 @@
 package api
 
 import (
+	"bufio"
 	"database/sql"
+	"encoding/json"
+	"fmt"
 	"gorm.io/gorm"
+	"log"
+	"net/http"
+	"strings"
 	"time"
 	"tracker/internal/app/models"
 	"tracker/internal/app/server"
 )
+
+const GEOCODE_URL = "https://nominatim.openstreetmap.org/reverse.php"
+
+func reverseGeocode(lat float64, lng float64) (string, error) {
+	client := http.Client{}
+	resp, err := client.Get(GEOCODE_URL + "?lat=" + fmt.Sprint(lat) + "&lon=" + fmt.Sprint(lng) + "&format=jsonv2")
+	defer resp.Body.Close()
+	if err == nil {
+		scanner := bufio.NewScanner(resp.Body)
+		scanner.Scan()
+
+		jsn := scanner.Text()
+		if err := scanner.Err(); err != nil {
+			log.Println("Ошибка получения данных обратного геокодинга", err)
+			return "", err
+		}
+
+		return jsn, nil
+	}
+	return "", err
+}
 
 type Api struct {
 	OM *server.ObjectManager
@@ -41,7 +68,7 @@ func (api *Api) GetTrackers() ([]models.Tracker, error) {
 
 func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, error) {
 	sdr := api.DB.Raw(""+
-		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
+		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites, display_name "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
 		"WHERE sdr.tracker_id = ? AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' AND s.vld = 1 "+
@@ -64,8 +91,9 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 	var dirh sql.NullByte
 	var odm sql.NullInt32
 	var sat sql.NullByte
+	var display_name sql.NullString
 
-	err := sdr.Scan(&id, &ntm, &lat, &lng, &mv, &bb, &spd, &alts, &dir, &dirh, &odm, &sat)
+	err := sdr.Scan(&id, &ntm, &lat, &lng, &mv, &bb, &spd, &alts, &dir, &dirh, &odm, &sat, &display_name)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -73,19 +101,41 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 		return nil, err
 	}
 
+	if strings.Trim(display_name.String, "") == "" && lat.Float64 > 0 && lng.Float64 > 0 {
+		jsn, err := reverseGeocode(lat.Float64, lng.Float64)
+
+		if err != nil {
+			log.Println("Geocode error:", err)
+		} else {
+			DN := &struct {
+				DisplayName string `json:"display_name"`
+			}{}
+			err = json.Unmarshal([]byte(jsn), DN)
+			if err != nil {
+				log.Println("Geocode unmarchal error:", err)
+			} else {
+				sqlText := "UPDATE sr_pos_data SET display_name = '" + DN.DisplayName + "' WHERE id = " + fmt.Sprint(id.Int64)
+				api.DB.Raw(sqlText).Commit()
+			}
+
+		}
+
+	}
+
 	return &models.SrPosData{
-		ID:         uint64(id.Int64),
-		Ntm:        ntm.Time,
-		Latitude:   lat.Float64,
-		Longitude:  lng.Float64,
-		Mv:         mv.Byte,
-		Bb:         bb.Byte,
-		Spd:        uint16(spd.Int16),
-		Alts:       alts.Int32,
-		Dir:        dir.Byte,
-		Dirh:       dirh.Byte,
-		Odm:        uint32(odm.Int32),
-		Satellites: uint(sat.Byte),
+		ID:          uint64(id.Int64),
+		Ntm:         ntm.Time,
+		Latitude:    lat.Float64,
+		Longitude:   lng.Float64,
+		Mv:          mv.Byte,
+		Bb:          bb.Byte,
+		Spd:         uint16(spd.Int16),
+		Alts:        alts.Int32,
+		Dir:         dir.Byte,
+		Dirh:        dirh.Byte,
+		Odm:         uint32(odm.Int32),
+		Satellites:  uint(sat.Byte),
+		DisplayName: display_name.String,
 	}, nil
 }
 
