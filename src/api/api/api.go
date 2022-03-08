@@ -73,7 +73,7 @@ func (api *Api) GetLastTrackersPositions(trackerIds []string) (map[int]*models.S
 
 		trackStr = " AND sdr.tracker_id IN (" + strings.Join(trackerIds, ", ") + ") "
 	}
-	sqlText := "SELECT sdr.tracker_id, max(s.ntm) as ntm" +
+	sqlText := "SELECT sdr.tracker_id, max(s.ntm) as ntm " +
 		"FROM service_data_records as sdr " +
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id " +
 		"WHERE s.ntm < '2100-01-01' " + trackStr +
