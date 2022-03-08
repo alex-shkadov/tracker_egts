@@ -45,6 +45,7 @@ type SrPosData struct {
 	Dirh                byte              `json:"dirh"`
 	Odm                 uint32            `json:"odm"`
 	Satellites          uint              `json:"satellites"`
+	DisplayName         string            `json:"display_name"`
 	RecordNumber        int16             `json:"record_number"`
 	UpdatedAt           time.Time         `json:"-"`
 	CreatedAt           time.Time         `json:"-"`
