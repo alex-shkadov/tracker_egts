@@ -73,10 +73,12 @@ func (api *Api) GetLastTrackersPositions(trackerIds []string) (map[int]*models.S
 
 		trackStr = " AND sdr.tracker_id IN (" + strings.Join(trackerIds, ", ") + ") "
 	}
+
+	dtNow := time.Now().Format("2006-01-02 15:04:05")
 	sqlText := "SELECT sdr.tracker_id, max(s.ntm) as ntm " +
 		"FROM service_data_records as sdr " +
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id " +
-		"WHERE s.ntm < '2100-01-01' " + trackStr +
+		"WHERE s.ntm <= '" + dtNow + "' " + trackStr +
 		"GROUP BY sdr.tracker_id"
 
 	rows, err := api.DB.Raw(sqlText).Rows()
@@ -173,11 +175,14 @@ func (api *Api) GetLastTrackersPositions(trackerIds []string) (map[int]*models.S
 }
 
 func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, error) {
+
+	dtNow := time.Now().Format("2006-01-02 15:04:05")
+
 	sdr := api.DB.Raw(""+
 		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites, display_name "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
-		"WHERE sdr.tracker_id = ? AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' AND s.vld = 1 "+
+		"WHERE sdr.tracker_id = ? AND s.deleted_at IS NULL AND s.ntm < '"+dtNow+"' AND s.vld = 1 "+
 		"ORDER BY s.ntm DESC "+
 		"LIMIT 1", trackerId).Row()
 
@@ -262,12 +267,12 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 	if tx.RowsAffected == 0 {
 
 	}
-
+	dtNow := time.Now().Format("2006-01-02 15:04:05")
 	sdrs, err := api.DB.Raw(""+
 		"SELECT s.id, ntm, latitude, longitude, mv, bb, spd, alts, dir, dirh, odm, satellites "+
 		"FROM service_data_records as sdr "+
 		"JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id "+
-		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL AND s.ntm < '2100-01-01' AND s.vld = 1 "+
+		"WHERE sdr.tracker_id = ? AND s.ntm BETWEEN ? AND ? AND sdr.deleted_at IS NULL AND s.deleted_at IS NULL AND s.ntm < '"+dtNow+"' AND s.vld = 1 "+
 		"ORDER BY s.id", trackerId, dateFrom, dateTo).Rows()
 
 	defer sdrs.Close()
