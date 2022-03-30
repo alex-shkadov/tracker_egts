@@ -321,8 +321,8 @@ func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo stri
 				}
 			}
 
-			if ntm.Time.Unix() < ntmCounter.Unix()+10 {
-				//continue
+			if ntm.Time.Unix() < ntmCounter.Unix()+5 {
+				continue
 			}
 
 			ntmCounter = ntm.Time
