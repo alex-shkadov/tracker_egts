@@ -4,6 +4,7 @@ services:
 
   db:
     image: postgres:latest
+    shm_size: 1gb
     restart: always
     environment:
       POSTGRES_USER: ${DB_ADMIN_USER}
