@@ -57,12 +57,12 @@ func main() {
 		result := map[int][]*api2.GpsData{}
 
 		var wg sync.WaitGroup
-		gpsResults := make(chan *api2.GpsDataResult, len(trackerIds))
+		gpsResults := make(chan api2.GpsDataResult, len(trackerIds))
 
+		defer close(gpsResults)
 		for _, _id := range trackerIds {
 			id, _ := strconv.Atoi(_id)
 
-			wg.Add(1)
 			go api.GetTrackerGPSDataAsync(uint16(id), dateFrom, dateTo, all == "1", gpsResults, &wg)
 			//posData, err := api.GetTrackerGPSData(uint16(id), dateFrom, dateTo, all == "1")
 			//if err != nil {
@@ -81,7 +81,6 @@ func main() {
 			select {
 			case res := <-gpsResults:
 				if res.Err != nil {
-					close(gpsResults)
 					w.WriteHeader(500)
 					w.Write([]byte("{}"))
 					return
@@ -90,8 +89,6 @@ func main() {
 				result[id] = res.Data
 			}
 		}
-
-		close(gpsResults)
 
 		js, err2 := json2.Marshal(result)
 		if err2 != nil {

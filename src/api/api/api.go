@@ -261,11 +261,12 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 	}, nil
 }
 
-func (api *Api) GetTrackerGPSDataAsync(trackerId uint16, dateFrom string, dateTo string, all bool, results chan *GpsDataResult, wg *sync.WaitGroup) {
+func (api *Api) GetTrackerGPSDataAsync(trackerId uint16, dateFrom string, dateTo string, all bool, results chan GpsDataResult, wg *sync.WaitGroup) {
 
+	defer wg.Done()
+	wg.Add(1)
 	result, err := api.GetTrackerGPSData(trackerId, dateFrom, dateTo, all)
-	wg.Done()
-	results <- &GpsDataResult{
+	results <- GpsDataResult{
 		Data: result,
 		Err:  err,
 	}
