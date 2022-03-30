@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	api2 "tracker/api/api"
 	db2 "tracker/internal/app/db"
 	"tracker/internal/app/models"
@@ -55,19 +56,42 @@ func main() {
 
 		result := map[int][]*api2.GpsData{}
 
+		var wg sync.WaitGroup
+		gpsResults := make(chan *api2.GpsDataResult, len(trackerIds))
+
 		for _, _id := range trackerIds {
 			id, _ := strconv.Atoi(_id)
 
-			posData, err := api.GetTrackerGPSData(uint16(id), dateFrom, dateTo, all == "1")
-			if err != nil {
-				w.WriteHeader(500)
-				w.Write([]byte("{}"))
-				return
-			}
-
-			result[id] = posData
-
+			wg.Add(1)
+			go api.GetTrackerGPSDataAsync(uint16(id), dateFrom, dateTo, all == "1", gpsResults, &wg)
+			//posData, err := api.GetTrackerGPSData(uint16(id), dateFrom, dateTo, all == "1")
+			//if err != nil {
+			//	w.WriteHeader(500)
+			//	w.Write([]byte("{}"))
+			//	return
+			//}
+			//
+			//result[id] = posData
 		}
+
+		wg.Wait()
+
+		for _, _id := range trackerIds {
+			id, _ := strconv.Atoi(_id)
+			select {
+			case res := <-gpsResults:
+				if res.Err != nil {
+					close(gpsResults)
+					w.WriteHeader(500)
+					w.Write([]byte("{}"))
+					return
+				}
+
+				result[id] = res.Data
+			}
+		}
+
+		close(gpsResults)
 
 		js, err2 := json2.Marshal(result)
 		if err2 != nil {

@@ -9,12 +9,18 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 	"tracker/internal/app/models"
 	"tracker/internal/app/server"
 )
 
 const GEOCODE_URL = "https://nominatim.openstreetmap.org/reverse.php"
+
+type GpsDataResult struct {
+	Data []*GpsData
+	Err  error
+}
 
 func reverseGeocode(lat float64, lng float64) (string, error) {
 	client := http.Client{}
@@ -253,6 +259,16 @@ func (api *Api) GetLastTrackerPosition(trackerId uint16) (*models.SrPosData, err
 		Satellites:  uint(sat.Byte),
 		DisplayName: display_name.String,
 	}, nil
+}
+
+func (api *Api) GetTrackerGPSDataAsync(trackerId uint16, dateFrom string, dateTo string, all bool, results chan *GpsDataResult, wg *sync.WaitGroup) {
+
+	result, err := api.GetTrackerGPSData(trackerId, dateFrom, dateTo, all)
+	wg.Done()
+	results <- &GpsDataResult{
+		Data: result,
+		Err:  err,
+	}
 }
 
 func (api *Api) GetTrackerGPSData(trackerId uint16, dateFrom string, dateTo string, all bool) ([]*GpsData, error) {
