@@ -132,7 +132,7 @@ SELECT s.id
 FROM service_data_records as sdr
 JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id
 WHERE sdr.tracker_id = :trackerId
-	AND s.ntm = ":ntm"
+	AND s.ntm = ':ntm'
 	AND s.spd = :speed
 	AND s.alts = :alts
 	AND s.latitude = :latitude
@@ -142,7 +142,7 @@ WHERE sdr.tracker_id = :trackerId
 LIMIT 1
 `
 	sqlText = strings.Replace(sqlText, ":trackerId", fmt.Sprint(sdr.TrackerId), 1)
-	sqlText = strings.Replace(sqlText, ":ntm", fmt.Sprint(srd.Ntm), 1)
+	sqlText = strings.Replace(sqlText, ":ntm", srd.Ntm.Format("2006-01-02 15:04:05"), 1)
 	sqlText = strings.Replace(sqlText, ":speed", fmt.Sprint(srd.Spd), 1)
 	sqlText = strings.Replace(sqlText, ":alts", fmt.Sprint(srd.Alts), 1)
 	sqlText = strings.Replace(sqlText, ":latitude", fmt.Sprint(srd.Latitude), 1)
