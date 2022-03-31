@@ -18,7 +18,7 @@ func main() {
 	)
 
 	startServer := flag.Bool("s", true, "Start server")
-	startParser := flag.Bool("p", true, "Start parsing")
+	startParser := flag.Bool("p", false, "Start parsing")
 
 	flag.Parse()
 

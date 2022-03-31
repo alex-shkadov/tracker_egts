@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/kuznetsovin/egts-protocol/libs/egts"
 	"gorm.io/gorm"
 	"log"
@@ -185,12 +184,10 @@ func HandleConnection(c net.Conn, timeout int) {
 						}
 
 						if locDef && satDef {
-							srd, err := om.SaveSrPosData(sdr, data)
-							if err != nil {
+							_, err := om.SaveSrPosData(sdr, data)
+							if err != nil && err.Error() != "duplicate" {
 								log.Fatalln(err)
 							}
-
-							fmt.Sprint(srd)
 						}
 					}
 				}

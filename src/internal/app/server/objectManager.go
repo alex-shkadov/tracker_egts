@@ -1,7 +1,10 @@
 package server
 
 import (
+	"errors"
+	"fmt"
 	"gorm.io/gorm"
+	"strings"
 	"time"
 	"tracker/internal/app/models"
 )
@@ -122,6 +125,35 @@ func (om *ObjectManager) SaveSrPosData(sdr *models.ServiceDataRecord, data map[s
 		Dirh:      data["DIRH"].(byte),
 		Odm:       data["ODM"].(uint32),
 		SDR:       *sdr,
+	}
+
+	sqlText := `
+SELECT s.id
+FROM service_data_records as sdr
+JOIN sr_pos_data as s ON s.service_data_record_id = sdr.id
+WHERE sdr.tracker_id = :trackerId
+	AND s.ntm = ":ntm"
+	AND s.spd = :speed
+	AND s.alts = :alts
+	AND s.latitude = :latitude
+	AND s.longitude = :longitude
+	AND s.dir = :dir
+  AND sdr.deleted_at IS NULL
+LIMIT 1
+`
+	sqlText = strings.Replace(sqlText, ":trackerId", fmt.Sprint(sdr.TrackerId), 1)
+	sqlText = strings.Replace(sqlText, ":ntm", fmt.Sprint(srd.Ntm), 1)
+	sqlText = strings.Replace(sqlText, ":speed", fmt.Sprint(srd.Spd), 1)
+	sqlText = strings.Replace(sqlText, ":alts", fmt.Sprint(srd.Alts), 1)
+	sqlText = strings.Replace(sqlText, ":latitude", fmt.Sprint(srd.Latitude), 1)
+	sqlText = strings.Replace(sqlText, ":longitude", fmt.Sprint(srd.Longitude), 1)
+	sqlText = strings.Replace(sqlText, ":dir", fmt.Sprint(srd.Dir), 1)
+
+	var exists int
+	om.db.Raw(sqlText).Scan(&exists)
+
+	if exists > 0 {
+		return nil, errors.New("duplicate")
 	}
 
 	result := om.db.Create(srd)
