@@ -54,7 +54,7 @@ func main() {
 			return
 		}
 
-		result := map[int][]*api2.GpsData{}
+		result := map[uint16][]*api2.GpsData{}
 
 		var wg sync.WaitGroup
 		gpsResults := make(chan api2.GpsDataResult, len(trackerIds))
@@ -76,8 +76,7 @@ func main() {
 
 		wg.Wait()
 
-		for _, _id := range trackerIds {
-			id, _ := strconv.Atoi(_id)
+		for range trackerIds {
 			select {
 			case res := <-gpsResults:
 				if res.Err != nil {
@@ -86,7 +85,7 @@ func main() {
 					return
 				}
 
-				result[id] = res.Data
+				result[res.TrackerId] = res.Data
 			}
 		}
 
